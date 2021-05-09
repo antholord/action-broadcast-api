@@ -16,6 +16,12 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.0-20150814002629-7fcbc72f853b
 ## explicit
 github.com/mattn/go-isatty
+# github.com/russross/blackfriday v2.0.0+incompatible
+## explicit
+github.com/russross/blackfriday
+# github.com/shurcooL/sanitized_anchor_name v1.0.0
+## explicit
+github.com/shurcooL/sanitized_anchor_name
 # github.com/stretchr/testify v1.3.0
 ## explicit
 # golang.org/x/net v0.0.0-20150629084131-d9558e5c97f8
