@@ -3,6 +3,9 @@
 github.com/gin-gonic/gin
 github.com/gin-gonic/gin/binding
 github.com/gin-gonic/gin/render
+# github.com/gorilla/websocket v1.4.2
+## explicit
+github.com/gorilla/websocket
 # github.com/heroku/x v0.0.0-20171004170240-705849e307dd
 ## explicit
 github.com/heroku/x/hmetrics

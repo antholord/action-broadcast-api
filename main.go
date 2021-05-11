@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	. "github.com/heroku/action-broadcast-api/src/websockets"
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/russross/blackfriday"
 )
@@ -16,6 +17,8 @@ func main() {
 	if port == "" {
 		log.Fatal("$PORT must be set")
 	}
+
+	
 
 	router := gin.New()
 	router.Use(gin.Logger())
@@ -28,6 +31,13 @@ func main() {
 
 	router.GET("/mark", func(c *gin.Context) {
 		c.String(http.StatusOK, string(blackfriday.Run([]byte("**hi!**"))))
+	})
+
+	var hub = NewHub()
+	go hub.Run()
+
+	router.GET("/ws", func(c *gin.Context) {
+		ServeWs(hub, c.Writer, c.Request)
 	})
 
 	router.Run(":" + port)
