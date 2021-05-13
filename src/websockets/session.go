@@ -1,8 +1,11 @@
 package websockets
 
-// Hub maintains the set of active clients and broadcasts messages to the
+// Session maintains the set of active clients and broadcasts messages to the
 // clients.
-type Hub struct {
+type Session struct {
+
+	sessionId string
+
 	// Registered clients.
 	clients map[*Client]bool
 
@@ -16,8 +19,9 @@ type Hub struct {
 	unregister chan *Client
 }
 
-func NewHub() *Hub {
-	return &Hub{
+func NewSession(id string) *Session {
+	return &Session{
+		sessionId: id,
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -25,7 +29,7 @@ func NewHub() *Hub {
 	}
 }
 
-func (h *Hub) Run() {
+func (h *Session) Run() {
 	for {
 		select {
 		case client := <-h.register:

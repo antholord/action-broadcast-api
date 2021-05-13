@@ -33,11 +33,18 @@ func main() {
 		c.String(http.StatusOK, string(blackfriday.Run([]byte("**hi!**"))))
 	})
 
-	var hub = NewHub()
-	go hub.Run()
+	var manager = NewManager()
 
-	router.GET("/ws", func(c *gin.Context) {
-		ServeWs(hub, c.Writer, c.Request)
+	router.GET("/create", func(c *gin.Context) {
+		go manager.HandleCreate(c)
+	})
+	router.GET("/join/:sessionId", func(c *gin.Context) {
+		name := c.Param("name")
+		if name == "" {
+			log.Fatalln("Missing SessionId to join session.")
+			return
+		}
+		go manager.HandleJoin(name, c)
 	})
 
 	router.Run(":" + port)
