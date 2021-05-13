@@ -16,6 +16,31 @@ window.onload = function () {
         }
     }
 
+    function genUrl(url) {
+        if (document.location.protocol === "https:") {
+            return "wss://" + document.location.host + url
+        } else {
+            return "ws://" + document.location.host + url
+        }
+    }
+
+    function initWs(ws) {
+        ws.onclose = function (evt) {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Connection closed.</b>";
+            appendLog(item);
+        };
+        ws.onmessage = function (evt) {
+            console.log(evt);
+            var messages = evt.data.split('\n');
+            for (var i = 0; i < messages.length; i++) {
+                var item = document.createElement("div");
+                item.innerText = messages[i];
+                appendLog(item);
+            }
+        };
+    }
+
     document.getElementById("form").onsubmit = function () {
         if (!conn) {
             return false;
@@ -28,30 +53,41 @@ window.onload = function () {
         return false;
     };
 
-    if (window["WebSocket"]) {
-        if (document.location.protocol === "https:") {
-          conn = new WebSocket("wss://" + document.location.host + "/ws");
-        } else {
-          conn = new WebSocket("ws://" + document.location.host + "/ws");
-        }
-        conn.onclose = function (evt) {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(item);
-        };
-        conn.onmessage = function (evt) {
-            var messages = evt.data.split('\n');
-            for (var i = 0; i < messages.length; i++) {
-                var item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(item);
-            }
-        };
-    } else {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
+    document.getElementById("sessionBtn").onclick = () => {
+        conn = new WebSocket(genUrl("/create"));
+        initWs(conn);
     }
+
+    document.getElementById("joinBtn").onclick = () => {
+        conn = new WebSocket(genUrl("/join/__default"));
+        initWs(conn);
+    }
+
+    // if (window["WebSocket"]) {
+    //     if (document.location.protocol === "https:") {
+    //       conn = new WebSocket("wss://" + document.location.host + "/ws");
+    //     } else {
+    //       conn = new WebSocket("ws://" + document.location.host + "/ws");
+    //     }
+    //     conn.onclose = function (evt) {
+    //         var item = document.createElement("div");
+    //         item.innerHTML = "<b>Connection closed.</b>";
+    //         appendLog(item);
+    //     };
+    //     conn.onmessage = function (evt) {
+    //         console.log(evt);
+    //         var messages = evt.data.split('\n');
+    //         for (var i = 0; i < messages.length; i++) {
+    //             var item = document.createElement("div");
+    //             item.innerText = messages[i];
+    //             appendLog(item);
+    //         }
+    //     };
+    // } else {
+    //     var item = document.createElement("div");
+    //     item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+    //     appendLog(item);
+    // }
 };
 </script>
 <style type="text/css">
@@ -76,7 +112,7 @@ body {
     top: 0.5em;
     left: 0.5em;
     right: 0.5em;
-    bottom: 3em;
+    bottom: 5em;
     overflow: auto;
 }
 
@@ -95,7 +131,12 @@ body {
 <body>
 <div id="log"></div>
 <form id="form">
+    <div>
+        <input id="sessionBtn" type="button" value="Create Session" />
+        <input id="joinBtn" type="button" value="Join session" />
+    </div>
     <input type="submit" value="Send" />
+    
     <input type="text" id="msg" size="64" autofocus />
 </form>
 </body>

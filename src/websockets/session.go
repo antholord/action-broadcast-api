@@ -1,5 +1,7 @@
 package websockets
 
+import "fmt"
+
 // Session maintains the set of active clients and broadcasts messages to the
 // clients.
 type Session struct {
@@ -33,14 +35,18 @@ func (h *Session) Run() {
 	for {
 		select {
 		case client := <-h.register:
+			fmt.Println("Registering client")
 			h.clients[client] = true
 		case client := <-h.unregister:
+			fmt.Println("Unregistering client")
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
 			}
 		case message := <-h.broadcast:
+			fmt.Println("Broadcasting a message")
 			for client := range h.clients {
+				fmt.Println("Sending message to 1 client")
 				select {
 				case client.send <- message:
 				default:

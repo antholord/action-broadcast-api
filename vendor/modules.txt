@@ -24,7 +24,6 @@ github.com/mattn/go-isatty
 github.com/russross/blackfriday
 # github.com/sethvargo/go-diceware v0.2.1
 ## explicit
-github.com/sethvargo/go-diceware/diceware
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 ## explicit
 github.com/shurcooL/sanitized_anchor_name

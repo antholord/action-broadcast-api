@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -36,15 +37,17 @@ func main() {
 	var manager = NewManager()
 
 	router.GET("/create", func(c *gin.Context) {
-		go manager.HandleCreate(c)
+		fmt.Println("Create route called")
+		manager.HandleCreate(c)
 	})
 	router.GET("/join/:sessionId", func(c *gin.Context) {
 		name := c.Param("name")
 		if name == "" {
-			log.Fatalln("Missing SessionId to join session.")
-			return
+			name = "__default"
+			// log.Fatalln("Missing SessionId to join session.")
+			// return
 		}
-		go manager.HandleJoin(name, c)
+		manager.HandleJoin(name, c)
 	})
 
 	router.Run(":" + port)
