@@ -22,35 +22,33 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) HandleCreate(c *gin.Context) {
+func (m *Manager) HandleCreate(clientName string, c *gin.Context) {
 	session := m.createNewSession()
-	client, err := m.handleCreateClient(session, c)
+	client, err := m.handleCreateClient(session, clientName, c)
 	
 	if err != nil {
 		return
 	}
 
 	session.register <- client
-	//c.String(http.StatusOK, session.sessionId)
 }
 
-func (m *Manager) HandleJoin(sessionId string, c *gin.Context) {
+func (m *Manager) HandleJoin(sessionId string, clientName string, c *gin.Context) {
 	m.MapLock.Lock(); defer m.MapLock.Unlock()
 
 	if session, found := m.sessions[sessionId]; found {
-		client, err := m.handleCreateClient(session, c)
+		client, err := m.handleCreateClient(session, clientName, c)
 	
 		if err != nil {
 			return
 		}
 
 		session.register <- client
-		//c.String(http.StatusOK, session.sessionId)
 	}
 }
 
-func (m *Manager) handleCreateClient(session *Session, c *gin.Context) (*Client, error) {
-	client, err := CreateClient(session, c.Writer, c.Request)
+func (m *Manager) handleCreateClient(session *Session, clientName string, c *gin.Context) (*Client, error) {
+	client, err := CreateClient(session, clientName, c.Writer, c.Request)
 	
 	if err != nil {
 		log.Println("Error Creating session and/or client", err)
@@ -66,9 +64,9 @@ func (m *Manager) createNewSession() *Session {
 	sessionId := m.createSessionId()
 	log.Println("Creating Session ", sessionId)
 
-	session := NewSession(sessionId)
+	session := NewSession(m, sessionId)
 	m.sessions[sessionId] = session
-	
+
 	go session.Run()
 	return session
 }

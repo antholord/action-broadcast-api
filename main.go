@@ -38,17 +38,31 @@ func main() {
 
 	router.GET("/create", func(c *gin.Context) {
 		fmt.Println("Create route called")
-		manager.HandleCreate(c)
+
+		clientName := c.DefaultQuery("user", "")
+		if (clientName == "") {
+			c.String(http.StatusBadRequest, "Cannot join session, user or sessionId missing")
+			return
+		}
+		manager.HandleCreate(clientName, c)
 	})
 	router.GET("/join/:sessionId", func(c *gin.Context) {
-		name := c.Param("name")
-		if name == "" {
-			name = "__default"
+		
+		sessionId := c.Param("sessionId")
+		if sessionId == "" {
+			sessionId = "__default"
 			// log.Fatalln("Missing SessionId to join session.")
 			// return
 		}
-		manager.HandleJoin(name, c)
+		clientName := c.DefaultQuery("user", "")
+		if (clientName == "") {
+			c.String(http.StatusBadRequest, "Cannot join session, user or sessionId missing")
+			return
+		}
+		manager.HandleJoin(sessionId, clientName, c)
 	})
+
+	router.GET("session")
 
 	router.Run(":" + port)
 }

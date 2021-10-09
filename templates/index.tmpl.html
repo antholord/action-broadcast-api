@@ -31,8 +31,9 @@ window.onload = function () {
             appendLog(item);
         };
         ws.onmessage = function (evt) {
-            console.log(evt);
-            var messages = evt.data.split('\n');
+            const data = JSON.parse(evt.data);
+            console.log(data);
+            var messages = data.message.split('\n');
             for (var i = 0; i < messages.length; i++) {
                 var item = document.createElement("div");
                 item.innerText = messages[i];
@@ -48,18 +49,18 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
-        conn.send(msg.value);
+        conn.send(JSON.stringify({ event: "action", target: "", message: msg.value }));
         msg.value = "";
         return false;
     };
 
     document.getElementById("sessionBtn").onclick = () => {
-        conn = new WebSocket(genUrl("/create"));
+        conn = new WebSocket(genUrl("/create?user=toto"));
         initWs(conn);
     }
 
     document.getElementById("joinBtn").onclick = () => {
-        conn = new WebSocket(genUrl("/join/__default"));
+        conn = new WebSocket(genUrl("/join/__default?user=tata"));
         initWs(conn);
     }
 

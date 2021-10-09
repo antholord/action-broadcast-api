@@ -1,7 +1,6 @@
 package websockets
 
 import (
-	"bytes"
 	"log"
 	"net/http"
 	"time"
@@ -20,13 +19,13 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 2147483646
 )
 
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
-)
+// var (
+// 	newline = []byte{'\n'}
+// 	space   = []byte{' '}
+// )
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -36,6 +35,8 @@ var upgrader = websocket.Upgrader{
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
 	session *Session
+
+	Name string
 
 	// The websocket connection.
 	conn *websocket.Conn
@@ -65,7 +66,7 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		// message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		c.session.broadcast <- message
 	}
 }
@@ -97,12 +98,12 @@ func (c *Client) writePump() {
 			}
 			w.Write(message)
 
-			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
+			// // Add queued chat messages to the current websocket message.
+			// n := len(c.send)
+			// for i := 0; i < n; i++ {
+			// 	// w.Write(newline)
+			// 	w.Write(<-c.send)
+			// }
 
 			if err := w.Close(); err != nil {
 				return
@@ -116,13 +117,13 @@ func (c *Client) writePump() {
 	}
 }
 
-func CreateClient(s *Session, w http.ResponseWriter, r *http.Request) (*Client, error) {
+func CreateClient(s *Session, clientName string, w http.ResponseWriter, r *http.Request) (*Client, error) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	client := &Client{session: s, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{session: s, Name: clientName, conn: conn, send: make(chan []byte, 256)}
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
