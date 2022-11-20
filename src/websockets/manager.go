@@ -45,7 +45,9 @@ func (m *Manager) HandleJoin(sessionId string, clientName string, c *gin.Context
 		}
 
 		session.register <- client
-	} //TODO throw error if joining unfound session
+	} else {
+		c.String(404, "Session not found")
+	} 
 }
 
 func (m *Manager) handleCreateClient(session *Session, clientName string, c *gin.Context) (*Client, error) {
