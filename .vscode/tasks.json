@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "go build -o bin/action-broadcast-api.exe -v"
+            "command": "go build -o bin/action-broadcast-api.exe -v && heroku local web -f Procfile.windows"
         },
         {
             "label": "launch",

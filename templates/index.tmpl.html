@@ -33,12 +33,25 @@ window.onload = function () {
         ws.onmessage = function (evt) {
             const data = JSON.parse(evt.data);
             console.log(data);
-            var messages = data.message.split('\n');
-            for (var i = 0; i < messages.length; i++) {
+            if (data.event === "user-joined") {
                 var item = document.createElement("div");
-                item.innerText = messages[i];
+                item.innerHTML = "<b>User " + data.payload.user + " joined.</b>";
+                appendLog(item);
+            } else if (data.event === "user-left") {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>User " + data.payload.user + " left.</b>";
+                appendLog(item);
+            } else if (data.event === "action") {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>" + data.payload.user + ":</b> " + data.message;
                 appendLog(item);
             }
+            // var messages = data.message.split('\n');
+            // for (var i = 0; i < messages.length; i++) {
+            //     var item = document.createElement("div");
+            //     item.innerText = messages[i];
+            //     appendLog(item);
+            // }
         };
     }
 
@@ -49,7 +62,7 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
-        conn.send(JSON.stringify({ event: "action", target: "", message: msg.value }));
+        conn.send(JSON.stringify({ event: "action", target: "", payload: { message: msg.value }}));
         msg.value = "";
         return false;
     };

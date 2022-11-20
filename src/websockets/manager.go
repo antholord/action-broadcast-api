@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/teris-io/shortid"
 )
 
 // Session maintains the set of active clients and broadcasts messages to the
@@ -22,8 +23,8 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) HandleCreate(clientName string, c *gin.Context) {
-	session := m.createNewSession()
+func (m *Manager) HandleCreate(sessionId string, clientName string, c *gin.Context) {
+	session := m.createNewSession(sessionId)
 	client, err := m.handleCreateClient(session, clientName, c)
 	
 	if err != nil {
@@ -44,7 +45,7 @@ func (m *Manager) HandleJoin(sessionId string, clientName string, c *gin.Context
 		}
 
 		session.register <- client
-	}
+	} //TODO throw error if joining unfound session
 }
 
 func (m *Manager) handleCreateClient(session *Session, clientName string, c *gin.Context) (*Client, error) {
@@ -58,10 +59,13 @@ func (m *Manager) handleCreateClient(session *Session, clientName string, c *gin
 	return client, nil
 }
 
-func (m *Manager) createNewSession() *Session {
+func (m *Manager) createNewSession(sessionId string) *Session {
 	m.MapLock.Lock(); defer m.MapLock.Unlock()
 	
-	sessionId := m.createSessionId()
+	if (sessionId == "") {
+		sessionId = m.createSessionId()
+	}
+	
 	log.Println("Creating Session ", sessionId)
 
 	session := NewSession(m, sessionId)
@@ -71,20 +75,17 @@ func (m *Manager) createNewSession() *Session {
 	return session
 }
 
+
 func (m *Manager) createSessionId() string {
-	return "__default";
-	// list, err := diceware.Generate(1)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// var sessionId = list[0];
-	// if _, found := m.sessions[sessionId]; found {
-	// 	//add while loop eventually
-	// 	list, err := diceware.Generate(1)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	sessionId = list[0];
-	// }
-	// return sessionId
+	sid := shortid.MustNew(1, shortid.DefaultABC, 2342)
+	id, err := sid.Generate()
+	if err != nil {
+		log.Println("Error creating session id", err)
+	}
+
+	if _, found := m.sessions[id]; found {
+		return m.createSessionId()
+	} else {
+		return id
+	}
 }

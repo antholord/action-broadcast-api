@@ -6,43 +6,10 @@ import (
 	"fmt"
 )
 
-const (
-	UserJoinEvent = "user-joined"
-	UserLeaveEvent = "user-left"
-	ActionEvent = "action"
-)
-
 type message struct {
-	Target string
-	Event string
-}
-
-type sessionInfoMessage struct {
-	message
-	clientNames []string
-	userName string
-}
-
-func NewMessage() *message {
-	return &message{ Target: "", Event: ActionEvent}
-}
-
-func NewClientJoinedMessage(s *Session, c *Client) *sessionInfoMessage {
-	m := newSessionInfoMessage(s.getClientNames())
-	m.Event = UserJoinEvent
-	m.userName = c.Name
-	return m
-}
-
-func NewClientLeftMessage(s *Session, c *Client) *sessionInfoMessage {
-	m := newSessionInfoMessage(s.getClientNames())
-	m.Event = UserLeaveEvent
-	m.userName = c.Name
-	return m
-}
-
-func newSessionInfoMessage(clientNames []string) *sessionInfoMessage {
-	return &sessionInfoMessage { message: message{ Target: ""}, clientNames: clientNames}
+	Target  string 	`json:"target"`
+	Event   string 	`json:"event"`
+	Payload map[string]interface{} `json:"payload"`
 }
 
 func ParseMessage(data []byte) (*message, error) {

@@ -1,5 +1,10 @@
 
+# action-broadcast-api
+
+``` go build -o bin/action-broadcast-api.exe -v . ```
+``` heroku local web -f Procfile.windows ```
 # go-getting-started
+
 
 A barebones Go app, which can easily be deployed to Heroku.
 
