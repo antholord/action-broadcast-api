@@ -25,6 +25,22 @@ window.onload = function () {
     }
 
     function initWs(ws) {
+        ws.onload = function () {
+            ws.send(JSON.stringify({
+            event: "set-data",
+            name: "toto",
+            payload: {
+                "registeredActions": [{
+                    "name": "action1",
+                    "description": "action1 description"
+                }, {
+                    "name": "action2",
+                    "description": "action2 description"
+                }]
+            }
+        }));
+        };
+        
         ws.onclose = function (evt) {
             var item = document.createElement("div");
             item.innerHTML = "<b>Connection closed.</b>";

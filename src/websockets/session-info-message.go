@@ -1,28 +1,41 @@
 package websockets
 
+import (
+	"encoding/json"
+)
+
 const (
-	UserJoinEvent  = "user-joined"
-	UserLeaveEvent = "user-left"
-	ActionEvent    = "action"
+	UserLeaveEvent    = "user-left"
+	GetUsersEvent     = "get-users"
+	UsersList = "users-list"
 )
 
 type sessionInfoMessage struct {
-	SessionId   string                 `json:"sessionId"`
-	Event       string                 `json:"event"`
-	ClientNames []string               `json:"clientNames"`
-	Payload     map[string]interface{} `json:"payload"`
-}
-
-func newSessionInfoMessage(s *Session, event string, payload map[string]interface{}) *sessionInfoMessage {
-	return &sessionInfoMessage{SessionId: s.sessionId, ClientNames: s.getClientNames(), Event: event, Payload: payload}
-}
-
-func NewClientJoinedMessage(session *Session, c *Client) *sessionInfoMessage {
-	m := newSessionInfoMessage(session, UserJoinEvent, map[string]interface{}{"user": c.Name})
-	return m
+	SessionId string `json:"sessionId"`
+	Type     string `json:"type"`
+	Payload   []byte `json:"payload"`
 }
 
 func NewClientLeftMessage(session *Session, c *Client) *sessionInfoMessage {
-	m := newSessionInfoMessage(session, UserLeaveEvent, map[string]interface{}{"user": c.Name})
-	return m
+	payload := struct { User string}{ User: c.Name}
+	bytes, err := json.Marshal(payload)
+	if err == nil {
+		println("NewClientLeftMessage error")
+		println(err)
+	}
+	return &sessionInfoMessage{SessionId: session.sessionId, Type: UserLeaveEvent, Payload: bytes}
+}
+
+func NewSendUsersListMessage(session *Session) *sessionInfoMessage {
+	clients := make([]*Client, 0, len(session.clients))
+	for _, value := range clients {
+		clients = append(clients, value)
+	}
+	payload := struct { Users []*Client}{ Users: clients}
+	bytes, err := json.Marshal(payload)
+	if err == nil {
+		println("NewGetUsersMessage error")
+		println(err)
+	}
+	return &sessionInfoMessage{SessionId: session.sessionId, Type: UsersList, Payload: bytes}
 }

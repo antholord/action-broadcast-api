@@ -6,10 +6,15 @@ import (
 	"fmt"
 )
 
+const (
+	SetDataEvent  = "set-data"
+	ActionEvent = "action"
+)
+
 type message struct {
 	Target  string 	`json:"target"`
 	Event   string 	`json:"event"`
-	Payload map[string]interface{} `json:"payload"`
+	Payload []byte `json:"payload"`
 }
 
 func ParseMessage(data []byte) (*message, error) {

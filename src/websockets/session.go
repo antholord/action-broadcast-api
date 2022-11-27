@@ -16,8 +16,12 @@ type Session struct {
 	// Registered clients.
 	clients map[*Client]bool
 
+	processMessage chan *ClientMessage
+
 	// Inbound messages from the clients.
-	broadcast chan []byte
+	clientBroadcast chan *message
+
+	serverBroadcast chan *sessionInfoMessage
 
 	// Register requests from the clients.
 	register chan *Client
@@ -30,38 +34,13 @@ func NewSession(m *Manager, id string) *Session {
 	return &Session{
 		manager: m,
 		sessionId: id,
-		broadcast:  make(chan []byte),
+		processMessage: make(chan *ClientMessage),
+		clientBroadcast:  make(chan *message),
+		serverBroadcast:  make(chan *sessionInfoMessage),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
 	}
-}
-
-func (s *Session) sendSessionInfo(c *Client, event string) {
-	var m *sessionInfoMessage
-	switch event {
-		case UserJoinEvent:
-			m = NewClientJoinedMessage(s, c)
-		case UserLeaveEvent:
-			m = NewClientLeftMessage(s, c)
-		default:
-			fmt.Println("Cannot find event message type to create")
-			return
-	}
-	
-	bytes, err := json.Marshal(m)
-	if err != nil {
-		fmt.Println(err)
-	}
-	s.broadcast <- bytes
-}
-
-func (s *Session) getClientNames() []string{
-	names := []string{}
-	for c := range s.clients {
-		names = append(names, c.Name)
-	}
-	return names
 }
 
 func (s *Session) deleteClient(c *Client) {
@@ -78,29 +57,49 @@ func (s *Session) Run() {
 		case client := <-s.register:
 			fmt.Println("Registering client")
 			s.clients[client] = true
-			go s.sendSessionInfo(client, UserJoinEvent)
 
 		case client := <-s.unregister:
 			if _, ok := s.clients[client]; ok {
 				fmt.Println("Unregistering client")
 				s.deleteClient(client)
-				go s.sendSessionInfo(client, UserJoinEvent)
+				s.serverBroadcast <- NewSendUsersListMessage(s)
 			}
 
-		case message := <-s.broadcast:
-			parsedMsg, err := ParseMessage(message)
-			fmt.Println(parsedMsg)
+		case clientMessage := <-s.processMessage:
+			parsedMsgData, err := ParseMessage(clientMessage.message)
+			fmt.Println(parsedMsgData)
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
+			switch parsedMsgData.Event {
+			case SetDataEvent:
+				//TODO see if this works
+				clientMessage.client.Data = parsedMsgData.Payload
+				s.serverBroadcast <- NewSendUsersListMessage(s)
+			case ActionEvent:
+				s.clientBroadcast <- parsedMsgData
+			}
+
+
+		case message := <-s.clientBroadcast:
+			bytes, _ := json.Marshal(message)
 			for client := range s.clients {
-				if parsedMsg.Target == "" || client.Name == parsedMsg.Target {
-					fmt.Println("Sending message to 1 client")
+				if message.Target == "" || client.Name == message.Target {
 					select {
-					case client.send <- message:
+					case client.send <- bytes:
 					default:
 						s.deleteClient(client)
 					}
+				}
+			}
+		case message := <-s.serverBroadcast:
+			bytes, _ := json.Marshal(message)
+			for client := range s.clients {
+				select {
+				case client.send <- bytes:
+				default:
+					s.deleteClient(client)
 				}
 			}
 		}

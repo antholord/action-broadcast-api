@@ -27,10 +27,6 @@ func main() {
 		c.HTML(http.StatusOK, "index.tmpl.html", nil)
 	})
 
-	// router.GET("/mark", func(c *gin.Context) {
-	// 	c.String(http.StatusOK, string(blackfriday.Run([]byte("**hi!**"))))
-	// })
-
 	var manager = NewManager()
 
 	router.GET("/create", func(c *gin.Context) {
@@ -46,7 +42,7 @@ func main() {
 		if sessionId == "" {
 			sessionId = "__default"
 		}
-
+	
 		manager.HandleCreate(sessionId, clientName, c)
 	})
 	router.GET("/join/:sessionId", func(c *gin.Context) {
@@ -60,6 +56,7 @@ func main() {
 			c.String(http.StatusBadRequest, "Cannot join session, user or sessionId missing")
 			return
 		}
+
 		manager.HandleJoin(sessionId, clientName, c)
 	})
 
